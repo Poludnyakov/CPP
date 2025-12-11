@@ -5,18 +5,17 @@
 #include <algorithm>
 #include <vector>
 
+
 class BCD {
 public:
     BCD(std::string str = "0") {
         if (str.empty()) str = "0";
         
-        // Обработка знака
         if (str[0] == '-') {
             is_negative = true;
             str = str.substr(1);
         }
         
-        // Замена запятой на точку
         size_t comma_pos = str.find(',');
         if (comma_pos != std::string::npos) {
             str[comma_pos] = '.';
@@ -25,7 +24,6 @@ public:
         // Разделение на целую и дробную части
         size_t dot_pos = str.find('.');
         if (dot_pos == std::string::npos) {
-            // Нет дробной части
             integer_part = std::stoul(str);
             fractional_part = "";
         } else {
@@ -36,22 +34,19 @@ public:
         assert(std::to_string(integer_part).length() <= 10);
     }
 
+
     BCD(int l, std::string r = "") : integer_part(std::abs(l)), fractional_part(r), is_negative(l < 0) {
         assert(std::to_string(integer_part).length() <= 10);
     }
     
     BCD() : integer_part(0), fractional_part(""), is_negative(false) {}
     
-    // Конструктор копирования
     BCD(const BCD& other) = default;
     
-    // Move конструктор
     BCD(BCD&& other) noexcept = default;
     
-    // Оператор присваивания
     BCD& operator=(const BCD& other) = default;
     
-    // Move присваивание
     BCD& operator=(BCD&& other) noexcept = default;
     
     int ceil() const {
@@ -107,7 +102,6 @@ public:
             return BCD(0, "");
         }
         
-        // Определяем знак результата
         bool result_negative = (is_negative != other.is_negative);
         
         // Преобразуем в строки без учета знака
@@ -120,7 +114,6 @@ public:
         
         int total_decimal_places = get_precision() + other.get_precision();
         
-        // Выполняем умножение
         int n = a_str.length();
         int m = b_str.length();
         std::vector<int> result(n + m, 0);
@@ -159,7 +152,7 @@ public:
         
         int result_int = std::stoi(integer_str);
         
-        // Вычисляем новую точность согласно формуле из задания
+        // Вычисляем новую точность
         int M = std::max(integer_part, other.integer_part);
         int log_term = (M == 0) ? 0 : static_cast<int>(std::log10(M)) + 1;
         int new_precision = std::min(get_precision(), other.get_precision()) - (1 + log_term);
@@ -198,6 +191,7 @@ public:
         
         std::string a_frac = fractional_part;
         std::string b_frac = other.fractional_part;
+        //Выравниваем дробные части
         align_fractions(a_frac, b_frac);
         return a_frac == b_frac;
     }
@@ -217,6 +211,7 @@ public:
         
         std::string a_frac = fractional_part;
         std::string b_frac = other.fractional_part;
+        //Выравниваем
         align_fractions(a_frac, b_frac);
         
         return is_negative ? a_frac > b_frac : a_frac < b_frac;
@@ -242,7 +237,7 @@ public:
         return integer_part == 0 && is_zero_fractional();
     }
     
-    // Метод для установки точности (добавлен)
+    // Метод для установки точности
     void set_precision(int precision) {
         if (precision < 0) precision = 0;
         if (fractional_part.length() < precision) {
@@ -273,13 +268,13 @@ private:
         }
         return true;
     }
-    
+    //Метод для выравнивания дробных частей
     static void align_fractions(std::string& a, std::string& b) {
         size_t max_len = std::max(a.length(), b.length());
         a.append(max_len - a.length(), '0');
         b.append(max_len - b.length(), '0');
     }
-    
+    //2 Метода для сложения чисел
     static BCD add_same_sign(const BCD& a, const BCD& b) {
         std::string a_frac = a.fractional_part;
         std::string b_frac = b.fractional_part;
@@ -287,23 +282,19 @@ private:
         
         std::string result_frac;
         int carry = 0;
-        
-        // Складываем дробные части
+
+
         for (int i = a_frac.length() - 1; i >= 0; i--) {
             int sum = (a_frac[i] - '0') + (b_frac[i] - '0') + carry;
             result_frac.push_back((sum % 10) + '0');
             carry = sum / 10;
         }
         std::reverse(result_frac.begin(), result_frac.end());
+        auto result_int = a.integer_part + b.integer_part + carry;
         
-        // Складываем целые части
-        unsigned result_int = a.integer_part + b.integer_part + carry;
-        
-        // Вычисляем новую точность (min - 1)
         int new_precision = std::min(a.get_precision(), b.get_precision()) - 1;
         if (new_precision < 0) new_precision = 0;
         
-        // Обрезаем дробную часть до новой точности
         if (new_precision < static_cast<int>(result_frac.length())) {
             result_frac = result_frac.substr(0, new_precision);
         }
@@ -359,10 +350,9 @@ private:
         }
         std::reverse(result_frac.begin(), result_frac.end());
         
-        // Вычитаем целые части
         unsigned result_int = larger->integer_part - smaller->integer_part - borrow;
         
-        // Вычисляем новую точность (min - 1)
+        // Вычисляем новую точность
         int new_precision = std::min(a.get_precision(), b.get_precision()) - 1;
         if (new_precision < 0) new_precision = 0;
         
@@ -377,6 +367,7 @@ private:
         return result;
     }
 };
+
 
 BCD calculateReciprocal(long long N, int precision) {
     assert(N != 0);
@@ -407,32 +398,22 @@ BCD calculateReciprocal(long long N, int precision) {
     return result;
 }
 
-// Вспомогательная функция для вычисления факториала с использованием BCD
-BCD factorial_bcd(int n) {
-    if (n <= 1) return BCD(1);
-    BCD result(1);
-    for (int i = 2; i <= n; i++) {
-        result = result * BCD(i);
-    }
-    return result;
-}
-
+//Some tests 
 int main() {
     BCD a(-10, "9988754");
     BCD b(1, "12300000001");
-    std::cout <<a - b << std::endl;
-    BCD test("1000,1234");
-    std::cout<<test << std::endl;
+    std::cout <<a << " - " << b << " = " << a - b << "\n";
+    a = BCD(13,"23949842450345");
+    b = BCD("-100,2998438774");
+    std::cout<< a  << " + " << b << " = " << a + b << "\n";
     BCD a1(-10, "9988754");
     BCD b1(-1, "12300000001");
-    std::cout <<a1*b1<< std::endl;
-    BCD c(0, "123");
-    BCD d = -c;
-    std::cout << d << std::endl;
-    BCD reciprocal = calculateReciprocal(-5, 100);
-    std::cout << reciprocal<< std::endl;
+    std::cout<< a1  << " * " << b1 << " = " << a1 * b1 << "\n";
+    a = BCD(13,"23949842450345");
+    b = BCD("-100,2998438774");
+    std::cout<< a  << " * " << b << " = " << a * b << "\n";
     BCD reciprocal2 = calculateReciprocal(345671, 100);
-    std::cout << reciprocal2 << std::endl;
+    std::cout << "1/345671 = "<< reciprocal2 << "\n";
     const int target_precision = 100;
     const int computation_precision = 400;
     BCD sum(1);
@@ -440,6 +421,7 @@ int main() {
     int n = 1;
     sum.set_precision(computation_precision);
     term.set_precision(computation_precision);
+    //n = 71 было рассчитано
     while (n < 71) {
         BCD recip_n = calculateReciprocal(n, computation_precision);
         term = term * recip_n;
@@ -451,3 +433,5 @@ int main() {
     std::cout << "e = " << sum <<" " <<sum.fractional_part.length()<<"\n";
     return 0;
 }
+
+
