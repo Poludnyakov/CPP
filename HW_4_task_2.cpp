@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <vector>
 
-
 class BCD {
 public:
     BCD(std::string str = "0") {
@@ -34,7 +33,6 @@ public:
         assert(std::to_string(integer_part).length() <= 10);
     }
 
-
     BCD(int l, std::string r = "") : integer_part(std::abs(l)), fractional_part(r), is_negative(l < 0) {
         assert(std::to_string(integer_part).length() <= 10);
     }
@@ -43,11 +41,19 @@ public:
     
     BCD(const BCD& other) = default;
     
-    BCD(BCD&& other) noexcept = default;
+    BCD(BCD&& other) noexcept
+        : integer_part(std::move(other.integer_part))
+        , fractional_part(std::move(other.fractional_part))
+        , is_negative(std::move(other.is_negative)) {}
+
+    BCD& operator=(BCD&& other) noexcept {
+        integer_part = std::move(other.integer_part);
+        fractional_part = std::move(other.fractional_part);
+        is_negative = std::move(other.is_negative);
+        return *this;
+    }
     
     BCD& operator=(const BCD& other) = default;
-    
-    BCD& operator=(BCD&& other) noexcept = default;
     
     int ceil() const {
         if (fractional_part.empty() || is_zero_fractional()) {
@@ -283,7 +289,6 @@ private:
         std::string result_frac;
         int carry = 0;
 
-
         for (int i = a_frac.length() - 1; i >= 0; i--) {
             int sum = (a_frac[i] - '0') + (b_frac[i] - '0') + carry;
             result_frac.push_back((sum % 10) + '0');
@@ -368,7 +373,6 @@ private:
     }
 };
 
-
 BCD calculateReciprocal(long long N, int precision) {
     assert(N != 0);
     
@@ -398,7 +402,6 @@ BCD calculateReciprocal(long long N, int precision) {
     return result;
 }
 
-//Some tests 
 int main() {
     BCD a(-10, "9988754");
     BCD b(1, "12300000001");
@@ -409,6 +412,8 @@ int main() {
     BCD a1(-10, "9988754");
     BCD b1(-1, "12300000001");
     std::cout<< a1  << " * " << b1 << " = " << a1 * b1 << "\n";
+    a1 = std::move(a);
+    BCD b2(std::move(b1));
     a = BCD(13,"23949842450345");
     b = BCD("-100,2998438774");
     std::cout<< a  << " * " << b << " = " << a * b << "\n";
@@ -433,5 +438,3 @@ int main() {
     std::cout << "e = " << sum <<" " <<sum.fractional_part.length()<<"\n";
     return 0;
 }
-
-
