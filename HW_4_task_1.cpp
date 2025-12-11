@@ -227,7 +227,7 @@ int main() {
                     calc.exp();
                 }
                 else if (token == "log") {
-                    calc.log(); // Теперь унарный
+                    calc.log();
                 }
                 else if (token == "sqrt") {
                     calc.sqrt();
